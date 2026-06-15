@@ -20,9 +20,11 @@ public abstract class AbstractIntegrationTest {
 
     @DynamicPropertySource
     static void registerProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgres::getJdbcUrl);
-        registry.add("spring.datasource.username", postgres::getUsername);
-        registry.add("spring.datasource.password", postgres::getPassword);
-        registry.add("user-service.url", () -> "http://localhost:${wiremock.server.port}");
+        registry.add("DB_HOST", postgres::getHost);
+        registry.add("DB_PORT", () -> postgres.getMappedPort(5432));
+        registry.add("DB_NAME", postgres::getDatabaseName);
+        registry.add("DB_USERNAME", postgres::getUsername);
+        registry.add("DB_PASSWORD", postgres::getPassword);
+        registry.add("USER_SERVICE_URL", () -> "http://localhost:" + System.getProperty("wiremock.server.port"));
     }
 }
