@@ -64,11 +64,11 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: SonarCloud Scan
+      - name: Build and analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          mvn sonar:sonar -B \
+          mvn -B verify sonar:sonar \
           -Dsonar.projectKey=n8xx_orderservice \
           -Dsonar.organization=n8xx \
           -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
