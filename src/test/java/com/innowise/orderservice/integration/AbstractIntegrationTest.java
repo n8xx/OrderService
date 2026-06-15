@@ -12,7 +12,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers
 @SpringBootTest
 @AutoConfigureMockMvc
-@AutoConfigureWireMock(port = 0)
+@AutoConfigureWireMock(port = 8089)
 public abstract class AbstractIntegrationTest {
 
     @Container
@@ -25,6 +25,6 @@ public abstract class AbstractIntegrationTest {
         registry.add("DB_NAME", postgres::getDatabaseName);
         registry.add("DB_USERNAME", postgres::getUsername);
         registry.add("DB_PASSWORD", postgres::getPassword);
-        registry.add("USER_SERVICE_URL", () -> "http://localhost:" + System.getProperty("wiremock.server.port"));
+        registry.add("USER_SERVICE_URL", () -> "http://localhost:8089");
     }
 }
