@@ -18,7 +18,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - microservices-net
+      - orderservice-network
 
   order-service:
     build: .
@@ -27,18 +27,22 @@ services:
       order-db:
         condition: service_healthy
     environment:
-      DB_URL: jdbc:postgresql://order-db:5432/orderdb
+      DB_HOST: order-db
+      DB_PORT: 5432
+      DB_NAME: orderdb
       DB_USERNAME: order_user
       DB_PASSWORD: order_pass
-      USER_SERVICE_URL: http://user-service-app:8080
+      USER_SERVICE_URL: http://host.docker.internal:8080
     ports:
       - "8081:8081"
     networks:
-      - microservices-net
+      - orderservice-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
 volumes:
   order-db-data:
 
 networks:
-  microservices-net:
-    external: true
+  orderservice-network:
+    driver: bridge
