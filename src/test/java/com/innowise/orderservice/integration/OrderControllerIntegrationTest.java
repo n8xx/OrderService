@@ -54,7 +54,7 @@ class OrderControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     private void stubUserService() {
-        WireMock.stubFor(WireMock.get(WireMock.urlEqualTo("/api/v1/users/email/anna@example.com"))
+        WireMock.stubFor(WireMock.get(WireMock.urlEqualTo("/api/v1/users/email/anna%40example.com"))
                 .willReturn(WireMock.aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody("""
@@ -212,7 +212,7 @@ class OrderControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void createOrder_shouldFallbackWhenUserServiceUnavailable() throws Exception {
-        WireMock.stubFor(WireMock.get(WireMock.urlEqualTo("/api/v1/users/email/anna@example.com"))
+        WireMock.stubFor(WireMock.get(WireMock.urlEqualTo("/api/v1/users/email/anna%40example.com"))
                 .willReturn(WireMock.aResponse().withStatus(500)));
 
         String body = objectMapper.writeValueAsString(buildOrderRequest());
