@@ -122,7 +122,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private OrderResponse enrichWithUser(OrderResponse orderResponse) {
-        UserDto userDto = userClient.getUserById(orderResponse.getUserId());
+        UserDto userDto = userClient.getUserByEmail(orderResponse.getUserEmail());
         orderResponse.setUser(userDto);
         return orderResponse;
     }

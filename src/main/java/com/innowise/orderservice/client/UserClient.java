@@ -4,5 +4,5 @@ import com.innowise.orderservice.dto.UserDto;
 
 public interface UserClient {
 
-    UserDto getUserById(Long userId);
+    UserDto getUserByEmail(String email);
 }

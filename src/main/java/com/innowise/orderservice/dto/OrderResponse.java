@@ -21,6 +21,8 @@ public class OrderResponse {
 
     private Long userId;
 
+    private String userEmail;
+
     private OrderStatus status;
 
     private BigDecimal totalPrice;

@@ -11,23 +11,24 @@ import org.springframework.web.client.RestClient;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@SuppressWarnings("unused")
 public class UserClientImpl implements UserClient {
 
     private final RestClient userRestClient;
 
     @Override
-    @CircuitBreaker(name = "userService", fallbackMethod = "getUserByIdFallback")
-    public UserDto getUserById(Long userId) {
+    @CircuitBreaker(name = "userService", fallbackMethod = "getUserByEmailFallback")
+    public UserDto getUserByEmail(String email) {
         return userRestClient.get()
-                .uri("/api/v1/users/{id}", userId)
+                .uri("/api/v1/users/email/{email}", email)
                 .retrieve()
                 .body(UserDto.class);
     }
 
-    private UserDto getUserByIdFallback(Long userId, Throwable throwable) {
-        log.warn("Falling back for user id {}: {}", userId, throwable.getMessage());
+    private UserDto getUserByEmailFallback(String email, Throwable throwable) {
+        log.warn("Falling back for user email {}: {}", email, throwable.getMessage());
         return UserDto.builder()
-                .id(userId)
+                .email(email)
                 .build();
     }
 }

@@ -12,4 +12,5 @@
     <include file="db/changelog/changes/005-add-order-items-item-id-index.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/changes/006-add-orders-deleted-user-id-index.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/changes/007-add-orders-deleted-status-index.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/changes/008-add-orders-user-email.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
