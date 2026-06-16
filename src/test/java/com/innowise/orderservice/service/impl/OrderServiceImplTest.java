@@ -3,7 +3,7 @@ package com.innowise.orderservice.service.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -22,8 +22,8 @@ import com.innowise.orderservice.entity.Item;
 import com.innowise.orderservice.entity.Order;
 import com.innowise.orderservice.entity.OrderItem;
 import com.innowise.orderservice.entity.OrderStatus;
-import com.innowise.orderservice.repository.ItemRepository;
-import com.innowise.orderservice.repository.OrderRepository;
+import com.innowise.orderservice.dao.ItemRepository;
+import com.innowise.orderservice.dao.OrderRepository;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -40,6 +40,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
+@SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
 class OrderServiceImplTest {
 
@@ -70,7 +71,7 @@ class OrderServiceImplTest {
     @BeforeEach
     void setUp() {
         OrderItemDto orderItemDto = new OrderItemDto(null, 1L, 2);
-        orderRequest = new OrderRequest(10L, OrderStatus.NEW, List.of(orderItemDto));
+        orderRequest = new OrderRequest(10L, "anna@example.com", OrderStatus.NEW, List.of(orderItemDto));
 
         item = new Item();
         item.setId(1L);
@@ -80,12 +81,14 @@ class OrderServiceImplTest {
         order = new Order();
         order.setId(100L);
         order.setUserId(10L);
+        order.setUserEmail("anna@example.com");
         order.setStatus(OrderStatus.NEW);
         order.setOrderItems(new java.util.ArrayList<>());
 
         orderResponse = OrderResponse.builder()
                 .id(100L)
                 .userId(10L)
+                .userEmail("anna@example.com")
                 .status(OrderStatus.NEW)
                 .totalPrice(BigDecimal.valueOf(100))
                 .build();
@@ -109,7 +112,7 @@ class OrderServiceImplTest {
         when(orderItemMapper.toEntity(any(OrderItemDto.class))).thenReturn(orderItem);
         when(orderRepository.save(order)).thenReturn(order);
         when(orderMapper.toDto(order)).thenReturn(orderResponse);
-        when(userClient.getUserById(10L)).thenReturn(userDto);
+        when(userClient.getUserByEmail("anna@example.com")).thenReturn(userDto);
 
         OrderResponse result = orderService.createOrder(orderRequest);
 
@@ -118,7 +121,7 @@ class OrderServiceImplTest {
         assertThat(order.getTotalPrice()).isEqualByComparingTo(BigDecimal.valueOf(100));
         assertThat(order.isDeleted()).isFalse();
         verify(orderRepository).save(order);
-        verify(userClient).getUserById(10L);
+        verify(userClient).getUserByEmail("anna@example.com");
     }
 
     @Test
@@ -133,16 +136,51 @@ class OrderServiceImplTest {
     }
 
     @Test
+    void getOrders_shouldReturnMappedAndEnrichedPage() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Order> orderPage = new PageImpl<>(List.of(order));
+
+        LocalDateTime createdFrom = LocalDateTime.of(2026, 1, 1, 0, 0);
+        LocalDateTime createdTo = LocalDateTime.of(2026, 1, 2, 0, 0);
+
+        when(orderRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(orderPage);
+        when(orderMapper.toDto(order)).thenReturn(orderResponse);
+        when(userClient.getUserByEmail("anna@example.com")).thenReturn(userDto);
+
+        Page<OrderResponse> result = orderService.getOrders(10L, createdFrom, createdTo,
+                List.of(OrderStatus.NEW), pageable);
+
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getContent().getFirst().getUser()).isEqualTo(userDto);
+        verify(orderRepository).findAll(any(Specification.class), any(Pageable.class));
+    }
+
+    @Test
+    void getOrders_shouldWorkWithoutUserIdFilter() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Order> orderPage = new PageImpl<>(List.of(order));
+
+        when(orderRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(orderPage);
+        when(orderMapper.toDto(order)).thenReturn(orderResponse);
+        when(userClient.getUserByEmail("anna@example.com")).thenReturn(userDto);
+
+        Page<OrderResponse> result = orderService.getOrders(null, null, null, null, pageable);
+
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        verify(orderRepository).findAll(any(Specification.class), any(Pageable.class));
+    }
+
+    @Test
     void getOrderById_shouldReturnEnrichedOrder() {
         when(orderRepository.findById(100L)).thenReturn(Optional.of(order));
         when(orderMapper.toDto(order)).thenReturn(orderResponse);
-        when(userClient.getUserById(10L)).thenReturn(userDto);
+        when(userClient.getUserByEmail("anna@example.com")).thenReturn(userDto);
 
         OrderResponse result = orderService.getOrderById(100L);
 
         assertThat(result.getId()).isEqualTo(100L);
         assertThat(result.getUser()).isEqualTo(userDto);
-        verify(userClient).getUserById(10L);
+        verify(userClient).getUserByEmail("anna@example.com");
     }
 
     @Test
@@ -153,41 +191,7 @@ class OrderServiceImplTest {
                 .isInstanceOf(OrderNotFoundException.class)
                 .hasMessageContaining("100");
 
-        verify(userClient, never()).getUserById(anyLong());
-    }
-
-    @Test
-    void getOrders_shouldReturnMappedAndEnrichedPage() {
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<Order> orderPage = new PageImpl<>(List.of(order));
-
-        when(orderRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(orderPage);
-        when(orderMapper.toDto(order)).thenReturn(orderResponse);
-        when(userClient.getUserById(10L)).thenReturn(userDto);
-
-        Page<OrderResponse> result = orderService.getOrders(
-                LocalDateTime.now().minusDays(1), LocalDateTime.now(),
-                List.of(OrderStatus.NEW), pageable);
-
-        assertThat(result.getTotalElements()).isEqualTo(1);
-        assertThat(result.getContent().getFirst().getUser()).isEqualTo(userDto);
-        verify(orderRepository).findAll(any(Specification.class), any(Pageable.class));
-    }
-
-    @Test
-    void getOrdersByUserId_shouldReturnMappedAndEnrichedPage() {
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<Order> orderPage = new PageImpl<>(List.of(order));
-
-        when(orderRepository.findByUserId(10L, pageable)).thenReturn(orderPage);
-        when(orderMapper.toDto(order)).thenReturn(orderResponse);
-        when(userClient.getUserById(10L)).thenReturn(userDto);
-
-        Page<OrderResponse> result = orderService.getOrdersByUserId(10L, pageable);
-
-        assertThat(result.getTotalElements()).isEqualTo(1);
-        assertThat(result.getContent().getFirst().getUser()).isEqualTo(userDto);
-        verify(orderRepository).findByUserId(10L, pageable);
+        verify(userClient, never()).getUserByEmail(anyString());
     }
 
     @Test
@@ -200,7 +204,7 @@ class OrderServiceImplTest {
         when(orderItemMapper.toEntity(any(OrderItemDto.class))).thenReturn(orderItem);
         when(orderRepository.save(order)).thenReturn(order);
         when(orderMapper.toDto(order)).thenReturn(orderResponse);
-        when(userClient.getUserById(10L)).thenReturn(userDto);
+        when(userClient.getUserByEmail("anna@example.com")).thenReturn(userDto);
 
         OrderResponse result = orderService.updateOrder(100L, orderRequest);
 
