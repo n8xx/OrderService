@@ -9,6 +9,7 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.client.RestClientException;
 
 @Slf4j
 @RestControllerAdvice
@@ -50,7 +51,14 @@ public class GlobalExceptionHandler {
         problemDetail.setTitle("Entity Not Found");
         return problemDetail;
     }
-
+    @ExceptionHandler(RestClientException.class)
+    public ProblemDetail handleRestClientException(RestClientException exception) {
+        log.error("User Service communication failed: {}", exception.getMessage());
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.SERVICE_UNAVAILABLE,
+                "User Service is currently unavailable");
+        problemDetail.setTitle("Service Unavailable");
+        return problemDetail;
+    }
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleGenericException(Exception exception) {
         log.error("Unexpected error: {}", exception.getMessage(), exception);
