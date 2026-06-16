@@ -1,4 +1,4 @@
-package com.innowise.orderservice.repository.specification;
+package com.innowise.orderservice.dao.specification;
 
 import com.innowise.orderservice.entity.Order;
 import com.innowise.orderservice.entity.OrderStatus;
