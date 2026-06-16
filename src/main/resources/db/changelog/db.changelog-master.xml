@@ -8,5 +8,5 @@
     <include file="db/changelog/changes/001-create-items-table.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/changes/002-create-orders-table.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/changes/003-create-order-items-table.xml" relativeToChangelogFile="false"/>
-
+    <include file="db/changelog/changes/004-add-items-name-index.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
