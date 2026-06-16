@@ -14,10 +14,9 @@ public interface OrderService {
 
     OrderResponse getOrderById(Long id);
 
-    Page<OrderResponse> getOrders(LocalDateTime createdFrom, LocalDateTime createdTo,
+    Page<OrderResponse> getOrders(Long userId, LocalDateTime createdFrom, LocalDateTime createdTo,
                                      List<OrderStatus> statuses, Pageable pageable);
 
-    Page<OrderResponse> getOrdersByUserId(Long userId, Pageable pageable);
 
     OrderResponse updateOrder(Long id, OrderRequest orderRequestDto);
 

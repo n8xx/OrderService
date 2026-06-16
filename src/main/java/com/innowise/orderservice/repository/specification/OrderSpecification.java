@@ -11,7 +11,14 @@ public class OrderSpecification {
 
     private OrderSpecification() {
     }
-
+    public static Specification<Order> hasUserId(Long userId){
+        return((root,query,criteriaBuilder) -> {
+            if(userId==null){
+                return criteriaBuilder.conjunction();
+            }
+            return criteriaBuilder.equal(root.get("userId"),userId);
+        });
+    }
     public static Specification<Order> hasStatuses(List<OrderStatus> statuses) {
         return (root, query, criteriaBuilder) -> {
             if (statuses == null || statuses.isEmpty()) {

@@ -38,7 +38,6 @@ public class OrderServiceImpl implements OrderService {
     private final UserClient userClient;
 
     @Override
-    @Transactional
     public OrderResponse createOrder(OrderRequest orderRequest) {
         Order order = orderMapper.toEntity(orderRequest);
         order.setDeleted(false);
@@ -58,10 +57,11 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Page<OrderResponse> getOrders(LocalDateTime createdFrom, LocalDateTime createdTo,
+    public Page<OrderResponse> getOrders(Long userId, LocalDateTime createdFrom, LocalDateTime createdTo,
                                             List<OrderStatus> statuses, Pageable pageable) {
         Specification<Order> specification = Specification
-                .where(OrderSpecification.createdBetween(createdFrom, createdTo))
+                .where(OrderSpecification.hasUserId(userId))
+                .and(OrderSpecification.createdBetween(createdFrom, createdTo))
                 .and(OrderSpecification.hasStatuses(statuses));
 
         return orderRepository.findAll(specification, pageable)
@@ -69,12 +69,7 @@ public class OrderServiceImpl implements OrderService {
                 .map(this::enrichWithUser);
     }
 
-    @Override
-    public Page<OrderResponse> getOrdersByUserId(Long userId, Pageable pageable) {
-        return orderRepository.findByUserId(userId, pageable)
-                .map(orderMapper::toDto)
-                .map(this::enrichWithUser);
-    }
+
 
     @Override
     @Transactional

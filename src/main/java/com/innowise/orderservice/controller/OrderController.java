@@ -43,19 +43,15 @@ public class OrderController {
 
     @GetMapping
     public ResponseEntity<Page<OrderResponse>> getOrders(
+            @RequestParam(required = false) Long userId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime createdFrom,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime createdTo,
             @RequestParam(required = false) List<OrderStatus> statuses,
             Pageable pageable) {
-        Page<OrderResponse> orders = orderService.getOrders(createdFrom, createdTo, statuses, pageable);
+        Page<OrderResponse> orders = orderService.getOrders(userId,createdFrom, createdTo, statuses, pageable);
         return ResponseEntity.ok(orders);
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<Page<OrderResponse>> getOrdersByUserId(@PathVariable Long userId, Pageable pageable) {
-        Page<OrderResponse> orders = orderService.getOrdersByUserId(userId, pageable);
-        return ResponseEntity.ok(orders);
-    }
 
     @PutMapping("/{id}")
     public ResponseEntity<OrderResponse> updateOrder(@PathVariable Long id,
